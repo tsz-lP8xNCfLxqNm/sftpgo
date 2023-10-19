@@ -1,0 +1,435 @@
+{
+	"info": {
+		"_postman_id": "92fea479-95d2-441d-b269-0a0ec18dc452",
+		"name": "sftpgo",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4919183"
+	},
+	"item": [
+		{
+			"name": "admin login",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.collectionVariables.set(\"admin.bearer\", jsonData['access_token']);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{admin.pw}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{admin.un}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-SFTPGO-OTP",
+						"value": "123456",
+						"description": "Optional, enable and add TFA token if you have it enabled for admin account",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "https://{{host}}/api/v2/token",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin logout",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.unset(\"admin.bearer\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin.bearer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{host}}/api/v2/logout",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "dump data",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin.bearer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{host}}/api/v2/dumpdata?scopes=users, admins, roles&indent=1&output-data=1",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"dumpdata"
+					],
+					"query": [
+						{
+							"key": "scopes",
+							"value": "users, admins, roles",
+							"description": "You can limit the dump contents to the specified scopes. Empty or missing means any supported scope. Scopes must be specified comma separated\n\nAllowed values:\nusers, folders, groups, admins, api_keys, shares, actions, rules, roles, ip_lists, configs"
+						},
+						{
+							"key": "indent",
+							"value": "1",
+							"description": "0 or unset: no indentation\n1: format the output JSON"
+						},
+						{
+							"key": "output-file",
+							"value": "./dump.txt",
+							"description": "If output-data is 0 or unset, this is required.\nPath for the file to write the JSON serialized data to. This path is relative to the configured \"backups_path\". If this file already exists it will be overwritten. To return the backup as response body set output_data to 1 instead.",
+							"disabled": true
+						},
+						{
+							"key": "output-data",
+							"value": "1",
+							"description": "0 or unset: the backup will be saved to a file on the server, output_file param becomes required\n1: the backup will be returned as response body"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "load data",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin.bearer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{host}}/api/v2/loaddata?mode=0&scan-quota=2",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"loaddata"
+					],
+					"query": [
+						{
+							"key": "mode",
+							"value": "0",
+							"description": "0 or unset: New objects are added, existing ones are updated.\n1: New objects are added, existing ones are not modified\n2: New objects are added, existing ones are updated and connected users are disconnected and so forced to use the new configuration"
+						},
+						{
+							"key": "scan-quota",
+							"value": "2",
+							"description": "0 or unset: no quota scan is done, the imported users/folders will have used_quota_size and used_quota_files = 0 or the existing values if they already exists\n1: scan quota\n2: scan quota if the user has quota restrictions\n"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "dump data to file",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin.bearer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{host}}/api/v2/dumpdata?scopes=users, admins, roles&indent=1&output-file=./dump.txt",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"dumpdata"
+					],
+					"query": [
+						{
+							"key": "scopes",
+							"value": "users, admins, roles",
+							"description": "You can limit the dump contents to the specified scopes. Empty or missing means any supported scope. Scopes must be specified comma separated\n\nAllowed values:\nusers, folders, groups, admins, api_keys, shares, actions, rules, roles, ip_lists, configs"
+						},
+						{
+							"key": "indent",
+							"value": "1",
+							"description": "0 or unset: no indentation\n1: format the output JSON"
+						},
+						{
+							"key": "output-file",
+							"value": "./dump.txt",
+							"description": "If output-data is 0 or unset, this is required.\nPath for the file to write the JSON serialized data to. This path is relative to the configured \"backups_path\". If this file already exists it will be overwritten. To return the backup as response body set output_data to 1 instead."
+						},
+						{
+							"key": "output-data",
+							"value": "1",
+							"description": "0 or unset: the backup will be saved to a file on the server, output_file param becomes required\n1: the backup will be returned as response body",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "load data from file",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin.bearer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{host}}/api/v2/loaddata?input-file=./dump.txt&mode=0&scan-quota=2",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"loaddata"
+					],
+					"query": [
+						{
+							"key": "input-file",
+							"value": "./dump.txt",
+							"description": "Path for the file to read the JSON serialized data from. This can be an absolute path or a path relative to the configured \"backups_path\". The max allowed file size is 10MB"
+						},
+						{
+							"key": "mode",
+							"value": "0",
+							"description": "0 or unset: New objects are added, existing ones are updated.\n1: New objects are added, existing ones are not modified\n2: New objects are added, existing ones are updated and connected users are disconnected and so forced to use the new configuration"
+						},
+						{
+							"key": "scan-quota",
+							"value": "2",
+							"description": "0 or unset: no quota scan is done, the imported users/folders will have used_quota_size and used_quota_files = 0 or the existing values if they already exists\n1: scan quota\n2: scan quota if the user has quota restrictions\n"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create user",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin.bearer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"status\": 1,\r\n    \"username\": \"user123\",\r\n    \"email\": \"user123@proton.me\",\r\n    \"password\": \"changeme\",\r\n    \"public_keys\": [\r\n        \"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIByhlxLtpH8+MrXl34canNbLW970vjaoYd36+GJm+U6Q TNG@tsz\"\r\n    ],\r\n    \"has_password\": true,\r\n    \"home_dir\": \"/srv/sftpgo/data/user123\",\r\n    \"permissions\": {\r\n        \"/\": [\r\n            \"list\",\r\n            \"download\"\r\n        ]\r\n    },\r\n    \"role\": \"role-name\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{host}}/api/v2/users",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"users"
+					],
+					"query": [
+						{
+							"key": "confidential_data",
+							"value": null,
+							"description": "If set to 1 confidential data will not be hidden. This means that the response will contain the hash of the password and the key and additional data for secrets. If a master key is not set or an external KMS is used, the data returned are enough to get the secrets in cleartext. Ignored if the manage_system permission is not granted.",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin.un",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin.pw",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin.bearer",
+			"value": ""
+		}
+	]
+}
