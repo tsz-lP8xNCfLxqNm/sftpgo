@@ -57,12 +57,12 @@ shift $((OPTIND - 1))
 if [[ -n "$role" ]]; then
     body=$(jq -n \
         --arg un "$username" --arg email "${email:-}"  --arg pw "${password:-changeme}"  --arg ssh "$ssh_key" --arg role "$role" \
-        '{status: 1, username: $un, email: $email, password: $pw, public_keys: [ $ssh ], has_password: true, role: $role, permissions: {"/": [ "list", "download"]}}')
+        '{status: 1, username: $un, email: $email, password: $pw, public_keys: [ $ssh ], has_password: true, require_password_change: true, role: $role, permissions: {"/": [ "list", "download"]}}')
 
 else
     body=$(jq -n \
         --arg un "$username" --arg email "${email:-}"  --arg pw "${password:-changeme}"  --arg ssh "$ssh_key" \
-        '{status: 1, username: $un, email: $email, password: $pw, public_keys: [ $ssh ], has_password: true, permissions: {"/": [ "list", "download"]}}')
+        '{status: 1, username: $un, email: $email, password: $pw, public_keys: [ $ssh ], has_password: true, require_password_change: true, permissions: {"/": [ "list", "download"]}}')
 fi
 
 #prompt for admin credentials if necessary
